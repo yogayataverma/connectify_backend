@@ -131,6 +131,7 @@ io.on("connection", (socket) => {
         fileType: data.fileType || null,
       });
       await newMessage.save();
+
       io.emit("receiveMessage", newMessage); // Broadcast to all users
     } catch (err) {
       console.error(err);
