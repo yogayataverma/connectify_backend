@@ -80,7 +80,7 @@ app.post("/upload", upload.single("file"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
-  const fileUrl = `/uploads/${req.file.filename}`;
+  const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
   res.json({ fileUrl, fileType: req.file.mimetype });
 });
 
@@ -101,7 +101,7 @@ io.on("connection", (socket) => {
   // Handle user registration
   socket.on("registerUser", async (data) => {
     try {
-      let user = await User.findOneAndUpdate(
+      await User.findOneAndUpdate(
         { username: data.username },
         { socketId: socket.id },
         { new: true, upsert: true }
@@ -131,7 +131,7 @@ io.on("connection", (socket) => {
         fileType: data.fileType || null,
       });
       await newMessage.save();
-      io.emit("receiveMessage", newMessage);
+      io.emit("receiveMessage", newMessage); // Broadcast to all users
     } catch (err) {
       console.error(err);
     }
@@ -140,7 +140,7 @@ io.on("connection", (socket) => {
   // Handle clearing chat
   socket.on("clearChat", async () => {
     await Message.deleteMany();
-    io.emit("receiveMessage", []);
+    io.emit("receiveMessage", []); // Clear messages for all users
   });
 
   // Handle disconnection
